@@ -2,7 +2,7 @@
 
 把 Markdown 轉成可複製的排版內容與巴哈原始碼。免費、免登入，所有文字轉換都在瀏覽器完成。
 
-**[開啟網站](https://blog.jakeuj.com/bahamut-markdown-converter/)**
+**[開啟網站](https://bahamut-markdown-converter.jakeuj.com/)**
 
 ## 使用方式
 
@@ -36,7 +36,7 @@ npm ci
 npm run dev
 ```
 
-開啟終端顯示的 `/bahamut-markdown-converter/` 網址。
+開啟終端顯示的本機網址。
 
 ```sh
 npm test
@@ -62,7 +62,7 @@ const result = convertMarkdown("# 標題", { tabSize: 4 });
 
 GitHub Actions 在 PR 執行測試與建置；`main` 通過後以 Pages artifact 部署 `dist`。儲存庫 Settings → Pages 的 Source 選擇 **GitHub Actions**。
 
-預設路徑為 `/bahamut-markdown-converter/`，未新增專案 CNAME。GitHub Pages 會沿用帳號既有的 `blog.jakeuj.com` 網域，已啟用 HTTPS；`jakeuj.github.io/bahamut-markdown-converter/` 也會轉址到同一網站。若改儲存庫名稱，需要同步調整 `vite.config.ts` 的 `base` 及網站／README 的專案連結。
+GitHub Pages 自訂網域為 `bahamut-markdown-converter.jakeuj.com`，Cloudflare 的 DNS-only CNAME 指向 `jakeuj.github.io`。`public/CNAME` 記錄網域，Pages 設定也須綁定相同名稱。Vite 使用相對資源路徑 `base: "./"`，可在獨立網域根目錄載入。若更換網域，需同步更新 DNS、Pages 設定、CNAME 與網站連結。
 
 ## 來源與授權
 

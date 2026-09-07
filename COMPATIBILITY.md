@@ -47,7 +47,11 @@
 
 ## 正式部署
 
-GitHub Actions 的測試、建置與 Pages 部署皆通過。正式網址為 [blog.jakeuj.com/bahamut-markdown-converter](https://blog.jakeuj.com/bahamut-markdown-converter/)，沿用帳號既有 Pages 網域並啟用 HTTPS，沒有新增專案 CNAME。首頁、JS、CSS、favicon 皆回傳 200；原始 GitHub Pages 網址可正確轉址。正式站的範例轉換與原始碼剪貼簿內容已再次確認，沒有應用程式 console error／warning。
+GitHub Actions 的測試、建置與 Pages 部署皆通過。初次部署沿用帳號既有 Pages 網域 `blog.jakeuj.com` 並啟用 HTTPS。首頁、JS、CSS、favicon 皆回傳 200；原始 GitHub Pages 網址可正確轉址。正式站的範例轉換與原始碼剪貼簿內容已再次確認，沒有應用程式 console error／warning。
+
+## 獨立網域
+
+正式網址改為 [bahamut-markdown-converter.jakeuj.com](https://bahamut-markdown-converter.jakeuj.com/)。Cloudflare DNS-only CNAME 指向 `jakeuj.github.io`，GitHub Pages 設定綁定相同網域；Vite 資源路徑改為相對路徑，支援根目錄部署。
 
 ## 來源
 
