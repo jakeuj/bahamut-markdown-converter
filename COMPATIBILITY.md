@@ -45,6 +45,10 @@
 - 程式碼的 Tab 與空白行在本機預覽呈現正確。
 - 完整富文字人工貼上、Safari、Firefox、iOS、Android 與正式發文結果仍未測試。
 
+## 正式部署
+
+GitHub Actions 的測試、建置與 Pages 部署皆通過。正式網址為 [blog.jakeuj.com/bahamut-markdown-converter](https://blog.jakeuj.com/bahamut-markdown-converter/)，沿用帳號既有 Pages 網域並啟用 HTTPS，沒有新增專案 CNAME。首頁、JS、CSS、favicon 皆回傳 200；原始 GitHub Pages 網址可正確轉址。正式站的範例轉換與原始碼剪貼簿內容已再次確認，沒有應用程式 console error／warning。
+
 ## 來源
 
 - 作者提供的巴哈貼文技能規則：[RULES.md](RULES.md)。

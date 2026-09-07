@@ -2,7 +2,7 @@
 
 把 Markdown 轉成可複製的排版內容與巴哈原始碼。免費、免登入，所有文字轉換都在瀏覽器完成。
 
-**[開啟網站](https://jakeuj.github.io/bahamut-markdown-converter/)**
+**[開啟網站](https://blog.jakeuj.com/bahamut-markdown-converter/)**
 
 ## 使用方式
 
@@ -62,7 +62,7 @@ const result = convertMarkdown("# 標題", { tabSize: 4 });
 
 GitHub Actions 在 PR 執行測試與建置；`main` 通過後以 Pages artifact 部署 `dist`。儲存庫 Settings → Pages 的 Source 選擇 **GitHub Actions**。
 
-預設路徑為 `/bahamut-markdown-converter/`，沒有自訂網域。若改儲存庫名稱，需要同步調整 `vite.config.ts` 的 `base` 及網站／README 的專案連結。
+預設路徑為 `/bahamut-markdown-converter/`，未新增專案 CNAME。GitHub Pages 會沿用帳號既有的 `blog.jakeuj.com` 網域，已啟用 HTTPS；`jakeuj.github.io/bahamut-markdown-converter/` 也會轉址到同一網站。若改儲存庫名稱，需要同步調整 `vite.config.ts` 的 `base` 及網站／README 的專案連結。
 
 ## 來源與授權
 
