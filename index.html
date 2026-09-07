@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#087f74" />
+    <meta
+      name="description"
+      content="將 Markdown 轉成巴哈姆特貼文：即時預覽、一鍵複製排版與巴哈原始碼，保留表格、清單及程式碼換行。免費、免登入，轉換在瀏覽器完成。"
+    />
+    <title>巴哈姆特 Markdown 轉換器｜貼上靈感，帶走好排版</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <a class="skip" href="#input">跳到 Markdown 輸入</a>
+    <header class="site-header">
+      <nav class="container navigation" aria-label="主導覽">
+        <a class="brand" href="#"
+          ><img src="/favicon.svg" width="35" height="35" alt="" /><span
+            >巴哈姆特<span class="brand-sub">Markdown 轉換器</span></span
+          ></a
+        >
+        <div class="nav-links">
+          <a href="#converter">轉換器</a><a href="#rules">轉換規則</a
+          ><a href="#support">語法支援</a>
+        </div>
+        <div class="nav-actions">
+          <button
+            class="icon-button"
+            id="theme"
+            aria-label="切換深色／淺色主題"
+            title="切換主題"
+          >
+            ◐</button
+          ><a
+            class="github-link"
+            href="https://github.com/jakeuj/bahamut-markdown-converter"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="GitHub 專案原始碼"
+            ><svg
+              width="21"
+              height="21"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.52 2.34 1.08 2.91.82.09-.65.35-1.08.64-1.33-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.99 1.03-2.69-.1-.26-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.03A9.6 9.6 0 0 1 12 6.98c.85 0 1.7.11 2.5.34 1.91-1.3 2.75-1.03 2.75-1.03.55 1.38.2 2.39.1 2.65.64.7 1.03 1.6 1.03 2.69 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.6c0 .26.18.58.69.48A10 10 0 0 0 12 2Z"
+              /></svg
+          ></a>
+        </div>
+      </nav>
+    </header>
+    <main>
+      <section class="hero container">
+        <div class="hero-copy">
+          <span class="eyebrow"
+            ><span class="live-dot"></span> MARKDOWN → 巴哈姆特</span
+          >
+          <h1>內容你來寫，<br /><span>好排版交給我們。</span></h1>
+          <p class="hero-description">
+            從筆記到攻略，從程式碼到心得文。<br />貼上
+            Markdown，轉成巴哈能用的排版，<br
+              class="desktop-break"
+            />讓每一個換行、每一份心血，好好留下。
+          </p>
+          <div class="hero-buttons">
+            <a class="button primary" href="#converter"
+              >開始轉換 <span aria-hidden="true">↗</span></a
+            ><a class="text-link" href="#rules"
+              >看看怎麼轉 <span aria-hidden="true">↓</span></a
+            >
+          </div>
+          <div class="trust-line">
+            <span>✓ 免費・免登入</span><span>✓ 轉換在瀏覽器完成</span>
+          </div>
+        </div>
+        <div
+          class="hero-art"
+          aria-label="Markdown 轉為整齊文章的示意圖"
+          role="img"
+        >
+          <div class="orbit orbit-one"></div>
+          <div class="orbit orbit-two"></div>
+          <span class="art-spark spark-one">✦</span
+          ><span class="art-spark spark-two">＋</span>
+          <div class="art-window art-source">
+            <div class="window-top">
+              <span class="window-dots">● ● ●</span><span>your-notes.md</span>
+            </div>
+            <div class="source-code">
+              <span class="code-comment"># 今日的冒險筆記</span
+              ><br /><br /><span class="code-accent">**</span
+              >值得分享的小發現<span class="code-accent">**</span
+              ><br /><br /><span class="code-accent">-</span>
+              一份實用的攻略<br /><span class="code-accent">-</span>
+              一段解題的程式<br /><br /><span class="code-muted"
+                >| 裝備 | 推薦度 |</span
+              ><br /><span class="code-muted">| ---- | ------ |</span
+              ><br /><span class="code-muted">| 靈感 | ★★★★★ |</span>
+            </div>
+          </div>
+          <div class="transfer-badge">↗</div>
+          <div class="art-window art-result">
+            <div class="result-label">
+              <span class="live-dot"></span> READY TO POST <span>✓</span>
+            </div>
+            <div class="mock-avatar">
+              <span>文</span>
+              <div>
+                <b>今日的冒險筆記</b><small>把好內容，分享給同好</small>
+              </div>
+            </div>
+            <div class="mock-rule"></div>
+            <p>值得分享的小發現</p>
+            <div class="mock-line"><span>✓</span> 一份實用的攻略</div>
+            <div class="mock-line"><span>✓</span> 一段解題的程式</div>
+            <div class="mock-table">
+              <span>裝備</span><span>推薦度</span><b>靈感</b
+              ><b class="stars">★★★★★</b>
+            </div>
+          </div>
+          <div class="art-caption"><span>✧</span> 好內容，值得好排版。</div>
+        </div>
+      </section>
+      <section class="workspace-section" id="converter">
+        <div class="container">
+          <div class="section-top">
+            <div>
+              <div class="eyebrow section-kicker">THE CONVERTER</div>
+              <h2>貼上，轉換，就這麼簡單。</h2>
+              <p>左邊寫 Markdown，右邊帶走排版。輸入時會自動轉換。</p>
+            </div>
+            <span class="local-badge"
+              ><span class="live-dot"></span> 本機即時處理</span
+            >
+          </div>
+          <div class="notice">
+            <span class="notice-symbol">i</span>
+            <p>
+              <b>貼到巴哈，請優先使用「複製排版」。</b
+              >原始碼入口依編輯器而異；若有「原始碼」按鈕，也可貼入標記。<a
+                href="https://forum.gamer.com.tw/Co.php?bsn=60404&sn=105975"
+                target="_blank"
+                rel="noopener noreferrer"
+                >查看站務說明 ↗</a
+              >
+            </p>
+          </div>
+          <div class="editor-grid">
+            <section
+              class="editor-panel input-panel"
+              aria-labelledby="input-title"
+            >
+              <div class="panel-header">
+                <h3 id="input-title">
+                  <span class="panel-dot"></span>原始 Markdown
+                </h3>
+                <div class="small-actions">
+                  <button id="sample">載入範例</button
+                  ><button id="clear">清空</button>
+                </div>
+              </div>
+              <label class="sr-only" for="input">原始 Markdown 輸入區</label
+              ><textarea
+                id="input"
+                spellcheck="false"
+                placeholder="# 在這裡，開始你的好文章&#10;&#10;貼上 Markdown，或按「載入範例」試試看。&#10;&#10;**粗體**、清單、表格、程式碼…&#10;我們會替你照顧好格式。"
+              ></textarea>
+              <div class="panel-footer">
+                <span id="input-count">0 字元</span
+                ><span class="keyboard-hint"
+                  >快捷轉換 <kbd id="shortcut">Ctrl ↵</kbd></span
+                >
+              </div>
+            </section>
+            <section
+              class="editor-panel output-panel"
+              aria-labelledby="output-title"
+            >
+              <div class="panel-header">
+                <h3 id="output-title">
+                  <span class="panel-dot green"></span>巴哈貼文
+                </h3>
+                <span class="output-tag">OUTPUT</span>
+              </div>
+              <div class="output-tabs" role="tablist" aria-label="輸出格式">
+                <button
+                  id="preview-tab"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="preview-panel"
+                >
+                  排版預覽</button
+                ><button
+                  id="source-tab"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="source-panel"
+                  tabindex="-1"
+                >
+                  巴哈原始碼
+                </button>
+              </div>
+              <div
+                id="preview-panel"
+                role="tabpanel"
+                aria-labelledby="preview-tab"
+                tabindex="0"
+              >
+                <div class="empty-state" id="empty">
+                  <div class="empty-icon">文<span>✓</span></div>
+                  <b>好排版，準備就緒</b>
+                  <p>你的文章將會出現在這裡</p>
+                  <span>支援標題・表格・清單・程式碼</span>
+                </div>
+                <div id="preview" class="article-preview" hidden></div>
+              </div>
+              <div
+                id="source-panel"
+                role="tabpanel"
+                aria-labelledby="source-tab"
+                hidden
+              >
+                <label class="sr-only" for="source">巴哈原始碼輸出區</label
+                ><textarea
+                  id="source"
+                  readonly
+                  spellcheck="false"
+                  placeholder="轉換後的巴哈原始碼會出現在這裡。"
+                ></textarea>
+              </div>
+              <div class="panel-footer">
+                <span id="output-count">0 字元</span
+                ><span>實際排版以巴哈編輯器為準</span>
+              </div>
+            </section>
+          </div>
+          <div class="workspace-actions">
+            <button class="button secondary" id="convert">
+              立即轉換 <span aria-hidden="true">↻</span>
+            </button>
+            <div class="export-actions">
+              <button class="button primary" id="copy-rich" disabled>
+                複製排版 <span aria-hidden="true">▣</span></button
+              ><button class="button secondary" id="copy-source" disabled>
+                複製原始碼
+              </button>
+              <div class="download-actions">
+                <button id="download-html" disabled title="下載排版 HTML">
+                  ↓ .html</button
+                ><button id="download-txt" disabled title="下載巴哈原始碼">
+                  ↓ .txt
+                </button>
+              </div>
+            </div>
+          </div>
+          <div
+            id="status"
+            class="status"
+            role="status"
+            aria-live="polite"
+          ></div>
+          <button class="button secondary" id="select-preview" hidden>
+            選取預覽，手動複製
+          </button>
+          <details class="warnings" id="warnings" hidden>
+            <summary>轉換提醒 <span id="warning-count"></span></summary>
+            <ul id="warning-list"></ul>
+          </details>
+          <p class="privacy-note">
+            不儲存文章、不加入追蹤分析。外部圖片預覽會向圖片來源請求載入。
+          </p>
+        </div>
+      </section>
+      <section class="container rules-section" id="rules">
+        <div class="section-top">
+          <div>
+            <div class="eyebrow section-kicker">MADE FOR BAHAMUT</div>
+            <h2>不只換語法，也照顧閱讀。</h2>
+            <p>依巴哈貼文規範處理，遇到格式限制，就保留最重要的內容。</p>
+          </div>
+        </div>
+        <div class="rule-grid">
+          <article class="rule-card">
+            <div class="rule-icon">↵</div>
+            <h3>換行不再消失</h3>
+            <p>
+              段落與程式碼逐行包成區塊，保留空白行與視覺縮排，不依賴不支援的
+              <code>[code]</code>。
+            </p>
+            <span>01 / 保留結構</span>
+          </article>
+          <article class="rule-card">
+            <div class="rule-icon">▦</div>
+            <h3>表格，還是表格</h3>
+            <p>
+              裝備比較、規格整理，保留原本的欄列與順序。清單也保留層級，讓資訊一眼就懂。
+            </p>
+            <span>02 / 清楚呈現</span>
+          </article>
+          <article class="rule-card">
+            <div class="rule-icon">[ ]</div>
+            <h3>特殊字元，安心留下</h3>
+            <p>
+              中括號與 HTML
+              當作文字安全處理。程式碼裡的語法不會再被轉換，避免內容意外變形。
+            </p>
+            <span>03 / 忠於原文</span>
+          </article>
+          <article class="rule-card">
+            <div class="rule-icon">⇄</div>
+            <h3>兩種輸出，各取所需</h3>
+            <p>
+              一般編輯器使用「複製排版」；需要標記格式時，切換原始碼。也能下載，留一份在手邊。
+            </p>
+            <span>04 / 隨手帶走</span>
+          </article>
+        </div>
+      </section>
+      <section class="container support-section" id="support">
+        <div class="section-top">
+          <div>
+            <div class="eyebrow section-kicker">SYNTAX GUIDE</div>
+            <h2>哪些能轉？一次看明白。</h2>
+            <p>
+              查證與實測：2026-09-07 · 原始碼模式已驗證；富文字貼上仍待人工確認
+            </p>
+          </div>
+          <span class="small-label">支援標準 Markdown 與常用 GFM 語法</span>
+        </div>
+        <div class="table-scroll">
+          <table class="support-table">
+            <thead>
+              <tr>
+                <th>Markdown 語法</th>
+                <th>處理方式</th>
+                <th>備註</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>標題、段落</td>
+                <td><code>[div]</code> ＋ <code>[b]</code></td>
+                <td>保留文字，不新增章節編號</td>
+              </tr>
+              <tr>
+                <td>粗體、斜體、刪除線</td>
+                <td><code>[b]</code>、<code>[i]</code>、<code>[s]</code></td>
+                <td>保持正確巢狀</td>
+              </tr>
+              <tr>
+                <td>清單、工作清單</td>
+                <td>有序／無序清單、☐／☑</td>
+                <td>非 1 起始改為文字編號</td>
+              </tr>
+              <tr>
+                <td>表格、分隔線</td>
+                <td><code>[table]</code>、<code>[hr]</code></td>
+                <td>保留欄列；寬表格建議自行精簡</td>
+              </tr>
+              <tr>
+                <td>連結、圖片</td>
+                <td><code>[url=…]</code>、<code>[img=…]</code></td>
+                <td>限 HTTP(S)；圖片貼上行為未實測</td>
+              </tr>
+              <tr>
+                <td>引用、行內程式碼</td>
+                <td>「引用：」區塊、純文字</td>
+                <td>不使用 <code>[quote]</code> 與反引號</td>
+              </tr>
+              <tr>
+                <td>程式碼區塊</td>
+                <td>逐行 <code>[div]</code>，保留視覺縮排</td>
+                <td>不使用 <code>[code]</code>；不是原始碼備份</td>
+              </tr>
+              <tr>
+                <td>HTML、LaTeX 公式</td>
+                <td>保留原文，顯示提醒</td>
+                <td>不執行 HTML、不渲染公式</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <details class="sources">
+          <summary>相容性說明與參考來源</summary>
+          <p>
+            本工具的標記規則依專案內的巴哈貼文技能規則整理；瀏覽器預覽是本工具產生的
+            HTML，不是巴哈官方預覽。已在目前瀏覽器的巴哈原始碼模式驗證範例；無法由此推論所有帳號、編輯器或正式發文結果。一般編輯器的富文字剪貼簿相容性仍待人工確認，請在送出文章前確認。
+          </p>
+          <ul>
+            <li>
+              <a
+                href="https://forum.gamer.com.tw/Co.php?bsn=60404&sn=105975"
+                target="_blank"
+                rel="noopener noreferrer"
+                >巴哈站務：曾公告關閉原始碼編輯入口（2026-06-04）</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://www.arlenfuture.com/tools/markdown-to-bbcode/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >阿冷 Arlen：以引用替代程式碼標記的轉換經驗</a
+              >（本工具採技能的逐行區塊規則）
+            </li>
+            <li>
+              <a
+                href="https://discord-markdown-converter.gh.miniasp.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                >介面與功能參考：Will 保哥的 Discord Markdown 轉換器</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://github.com/jakeuj/bahamut-markdown-converter/blob/main/COMPATIBILITY.md"
+                target="_blank"
+                rel="noopener noreferrer"
+                >完整相容性與驗證紀錄</a
+              >
+            </li>
+          </ul>
+        </details>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <a class="brand" href="#"
+          ><img src="/favicon.svg" width="27" height="27" alt="" /><span
+            >巴哈姆特 Markdown 轉換器</span
+          ></a
+        >
+        <p>為喜歡分享的人而做。非巴哈姆特官方工具。</p>
+        <a
+          href="https://github.com/jakeuj/bahamut-markdown-converter/blob/main/LICENSE"
+          >MIT License ↗</a
+        >
+      </div>
+    </footer>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
