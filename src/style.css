@@ -178,6 +178,28 @@ code {
   width: 24px;
   height: 24px;
 }
+.install-button {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 13px;
+}
+.pwa-status,
+.pwa-help {
+  margin-top: 16px;
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.pwa-status {
+  padding: 12px 16px;
+  background: var(--soft);
+  border-radius: 8px;
+}
+.pwa-help summary { cursor: pointer; }
 .icon-button:hover,
 .github-link:hover {
   background: var(--soft);

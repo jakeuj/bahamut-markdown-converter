@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node scripts/build-pwa.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:pwa": "node scripts/verify-pwa.mjs"
   },
   "engines": {
     "node": ">=22.12.0"
@@ -21,9 +22,11 @@
   "devDependencies": {
     "@types/node": "^26.4.1",
     "jsdom": "^29.1.1",
+    "playwright": "^1.63.0",
     "prettier": "^3.9.6",
     "typescript": "^7.0.2",
     "vite": "^8.2.2",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.11",
+    "workbox-build": "^7.4.1"
   }
 }

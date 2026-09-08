@@ -3,6 +3,7 @@ import { initMotion } from "./motion";
 import { codeLanguages, type CodeTheme } from "./highlight";
 import { convertMarkdown, type ConversionResult } from "./converter";
 import { sample } from "./sample";
+import { initPwa } from "./pwa";
 const el = <T extends HTMLElement = HTMLElement>(id: string) =>
   document.getElementById(id) as T;
 const input = el<HTMLTextAreaElement>("input");
@@ -243,4 +244,9 @@ themeMedia.addEventListener("change", (e) => {
 convert();
 
 const stopMotion = initMotion();
-if (import.meta.hot) import.meta.hot.dispose(stopMotion);
+const stopPwa = initPwa();
+if (import.meta.hot)
+  import.meta.hot.dispose(() => {
+    stopMotion();
+    stopPwa();
+  });

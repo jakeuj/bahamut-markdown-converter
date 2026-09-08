@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#087f74" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <meta
       name="description"
       content="將 Markdown 轉成巴哈姆特貼文：即時預覽、一鍵複製排版與巴哈原始碼，保留表格、清單及程式碼換行。免費、免登入，轉換在瀏覽器完成。"
@@ -42,6 +44,7 @@
           ><a href="#support">語法支援</a>
         </div>
         <div class="nav-actions">
+          <button id="install-app" class="install-button" hidden>安裝</button>
           <button
             class="icon-button"
             id="theme"
@@ -316,6 +319,13 @@
           <p class="privacy-note">
             不儲存文章、不加入追蹤分析。外部圖片預覽會向圖片來源請求載入。
           </p>
+          <p id="pwa-status" class="pwa-status" role="status" aria-live="polite" hidden></p>
+          <details class="pwa-help">
+            <summary>安裝與離線使用</summary>
+            <p>可用時按頁首「安裝」，或使用瀏覽器選單的安裝功能。iPhone／iPad 請從「分享 → 加入主畫面」開啟；實際入口依瀏覽器而異。</p>
+            <p>首次連線並顯示「已可離線使用」後，即可斷網重新開啟、轉換、上色與匯出。外部圖片不保證離線顯示，巴哈發文仍需連線。清除網站資料後需重新連線快取。</p>
+            <p>離線可用不代表保存文章。請另外保存原始 Markdown；新版會等所有工具分頁與獨立視窗關閉後套用，不會自動重新載入編輯中的頁面。</p>
+          </details>
         </div>
       </section>
       <section class="container rules-section" id="rules">
