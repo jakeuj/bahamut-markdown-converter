@@ -17,6 +17,7 @@ interface Node {
   start?: number;
   children: Node[];
   tight?: boolean;
+  align?: "left" | "center" | "right";
 }
 type Format = "bb" | "html" | "plain";
 const md = new MarkdownIt({
@@ -121,6 +122,19 @@ function tree(tokens: Token[]): Node[] {
       kind: token.type.replace(/_open$/, ""),
       text: token.content,
       tight: token.hidden,
+      align:
+        token.type === "th_open" || token.type === "td_open"
+          ? (
+              {
+                "text-align:left": "left",
+                "text-align:center": "center",
+                "text-align:right": "right",
+              } as const
+            )[
+              token.attrGet("style") as
+                "text-align:left" | "text-align:center" | "text-align:right"
+            ]
+          : undefined,
       url: String(token.attrGet(token.type === "image" ? "src" : "href") ?? ""),
       start:
         token.type === "ordered_list_open"
@@ -407,20 +421,25 @@ export function convertMarkdown(
           ) + "\n"
         );
       }
-      case "table":
-        if (f === "plain") return children(n, f);
-        return (
-          wrap(
-            "table",
-            "\n" + children(n, f),
-            f,
-            f === "bb"
-              ? " width=100% border=1 cellspacing=0 cellpadding=4"
-              : f === "html"
-                ? ' border="1" cellspacing="0" cellpadding="4" style="border-collapse:collapse;width:100%"'
-                : "",
-          ) + "\n"
+      case "table": {
+        warnings.add(
+          "寬表格在巴哈手機版可能超出畫面；本機捲動效果不代表巴哈貼上結果。",
         );
+        if (f === "plain") return children(n, f);
+        const table = wrap(
+          "table",
+          "\n" + children(n, f),
+          f,
+          f === "bb"
+            ? " width=100% border=1 cellspacing=0 cellpadding=4"
+            : ' border="1" cellspacing="0" cellpadding="4" style="border-collapse:collapse;width:100%"',
+        );
+        return (
+          (f === "html"
+            ? `<div role="region" aria-label="表格，可左右捲動" tabindex="0" style="max-width:100%;overflow-x:auto">${table}</div>`
+            : table) + "\n"
+        );
+      }
       case "thead":
       case "tbody":
         return children(n, f);
@@ -431,8 +450,18 @@ export function convertMarkdown(
       case "th":
       case "td":
         return (
-          wrap("td", paragraph(n.children, f, n.kind === "th"), f) +
-          (f === "plain" ? "" : "\n")
+          wrap(
+            "td",
+            paragraph(n.children, f, n.kind === "th"),
+            f,
+            n.align
+              ? f === "bb"
+                ? ` align=${n.align}`
+                : f === "html"
+                  ? ` style="text-align:${n.align}"`
+                  : ""
+              : "",
+          ) + (f === "plain" ? "" : "\n")
         );
       case "link": {
         const url = safeUrl(n.url ?? "");

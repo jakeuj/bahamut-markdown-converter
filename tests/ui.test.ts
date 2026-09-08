@@ -167,7 +167,8 @@ describe("complete converter UI", () => {
 });
 
 it("shares quotes, code styling and entity fidelity across all exports", async () => {
-  const input = "> outer\n>\n> > inner\n\n3. item\n\n~~~\n&amp;\n\n~~~";
+  const input =
+    "> outer\n>\n> > inner\n\n| A | B |\n| :--- | ---: |\n| x | y |\n\n3. item\n\n~~~\n&amp;\n\n~~~";
   const result = convertMarkdown(input);
   await type(input);
   get("copy-rich").click();

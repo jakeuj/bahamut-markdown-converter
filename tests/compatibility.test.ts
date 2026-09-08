@@ -113,3 +113,42 @@ it("keeps heading separation inside fallback items", () => {
   const r = convertMarkdown("3. first\n\n   ## heading\n\n   body");
   expect(r.plainText).toBe("    3. first\n\n       heading\n       body");
 });
+
+it("preserves only explicit table alignments in every row and output", () => {
+  const { r, el } = dom(
+    "| L | C | R | D |\n| :--- | :---: | ---: | --- |\n| a | **b** | c | |\n| d | e | f | g |",
+  );
+  for (const row of el.querySelectorAll("tr")) {
+    expect([...row.cells].map((c) => c.style.textAlign)).toEqual([
+      "left",
+      "center",
+      "right",
+      "",
+    ]);
+    expect(row.cells[3].hasAttribute("style")).toBe(false);
+  }
+  expect(el.querySelectorAll("tr:first-child b")).toHaveLength(4);
+  expect(r.bbcode.match(/\[td align=right\]/g)).toHaveLength(3);
+  expect(r.bbcode).not.toMatch(/tabindex|role=|overflow|\n/);
+  expect(r.plainText).toContain("a | b | c | ");
+  expect(el.querySelector("[role=region]")?.getAttribute("tabindex")).toBe("0");
+});
+it("keeps aligned tables safe inside quotes and warns once for multiple tables", () => {
+  const table =
+    "| A | B |\n| :---: | ---: |\n| [link](https://example.com) | ![pic](https://example.com/a.png) |\n| a\\|b | <img src=x onerror=alert(1)> |";
+  const { r, el } = dom(
+    table
+      .split("\n")
+      .map((l) => "> " + l)
+      .join("\n") +
+      "\n\n" +
+      table,
+  );
+  expect(el.querySelectorAll("blockquote table")).toHaveLength(1);
+  expect(el.querySelectorAll("table")).toHaveLength(2);
+  expect(el.querySelectorAll("[onerror],script")).toHaveLength(0);
+  expect(el.querySelectorAll("td img")).toHaveLength(2);
+  expect(el.textContent).toContain("a|b");
+  expect(r.warnings.filter((w) => w.startsWith("寬表格"))).toHaveLength(1);
+  expect(convertMarkdown("no table").warnings).toEqual([]);
+});

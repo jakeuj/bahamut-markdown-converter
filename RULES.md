@@ -37,3 +37,9 @@ URL 先解析再限制為 HTTP(S)，拒絕控制字元、空白與內嵌帳密�
 ## 證據與限制
 
 見 [COMPATIBILITY.md](COMPATIBILITY.md) 的正式貼文證據。`[code]` 依使用者實測不使用；`[quote]` 已驗證可用。實體字面值的多層編碼仍被巴哈解碼，本工具保留本機原文並提醒。HTTP(S) allowlist、HTML 純文字處理及不渲染 LaTeX 是工具設計選擇，不是平台不支援的證明。
+
+## 表格欄位對齊
+
+只從 markdown-it 的表頭／資料格 token 保留 `left`、`center`、`right`，分別輸出 `[td align=…]` 及 HTML 內嵌 `text-align`。未指定不加屬性，不接受任意 CSS。純文字不模擬欄位對齊。HTML 捲動容器供預覽、複製與下載共用；原始碼只保留表格。每次有表格的轉換顯示一次手機溢出相容性提醒。
+
+其他已測語法與裝置差異見 [文章預覽證據](docs/editor-preview-evidence.md)，不因平台支援而自動新增 Markdown 擴充。
