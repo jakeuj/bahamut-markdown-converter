@@ -1,6 +1,6 @@
 ---
 name: bahamut-converter-maintenance
-description: 開發、除錯及維護本 repo 的巴哈姆特 Markdown 轉換器，涵蓋轉換核心、預覽與剪貼簿、相容性測試及 GitHub Pages 發布。適用於修改此專案或驗證轉換結果；單純撰寫巴哈文章不屬於本技能範圍。
+description: 開發、除錯及維護本 repo 的巴哈姆特 Markdown 轉換器，涵蓋轉換核心、預覽與剪貼簿、PWA 離線與更新、相容性測試及 GitHub Pages 發布。適用於修改此專案或驗證轉換結果；單純撰寫巴哈文章不屬於本技能範圍。
 ---
 
 # 巴哈轉換器開發維護
@@ -17,6 +17,7 @@ description: 開發、除錯及維護本 repo 的巴哈姆特 Markdown 轉換器
 | 六級標題、Setext、清單內標題 | 本文「六級標題」、[tests/headings.test.ts](../../../tests/headings.test.ts)、[最新標題預覽證據](../../../COMPATIBILITY.md#2026-09-08六級-markdown-標題) |
 | 程式碼上色、語言與配色 | [src/highlight.ts](../../../src/highlight.ts)、[src/themes](../../../src/themes)、[tests/highlight.test.ts](../../../tests/highlight.test.ts) |
 | 使用者操作、雙輸出與下載 | [src/main.ts](../../../src/main.ts)、[index.html](../../../index.html)、[src/style.css](../../../src/style.css) |
+| PWA 安裝、離線快取與版本更新 | 本文「PWA 維護」、[src/pwa.ts](../../../src/pwa.ts)、[scripts/build-pwa.mjs](../../../scripts/build-pwa.mjs)、[PWA 驗證紀錄](../../../docs/pwa-verification.md) |
 | 新語法或巴哈呈現不符預期 | [COMPATIBILITY.md](../../../COMPATIBILITY.md)，再查對應測試 |
 | 範例與操作說明 | [src/sample.ts](../../../src/sample.ts)、[README.md](../../../README.md) |
 | 部署、依賴或執行環境 | [package.json](../../../package.json)、[工作流程](../../../.github/workflows/pages.yml)、[vite.config.ts](../../../vite.config.ts)、[public/CNAME](../../../public/CNAME) |
@@ -57,6 +58,18 @@ description: 開發、除錯及維護本 repo 的巴哈姆特 Markdown 轉換器
 - 每張 HTML 表格外的捲動容器包含 `role="region"`、繁體中文 `aria-label`、`tabindex="0"` 及內嵌 `max-width:100%;overflow-x:auto`。一般資料格保留折行；程式碼承載表格則以 `white-space:pre` 保留長行，兩者皆局部捲動。巴哈原始碼不含此容器，不截斷內容或重組欄列。
 - 有 Markdown 資料表格便顯示一次「寬表格在巴哈手機版可能超出畫面；本機捲動效果不代表巴哈貼上結果。」程式碼的承載表格不觸發此提醒。不以欄數推定實際溢出，也不將本機捲動宣稱為巴哈端功能。
 
+## PWA 維護
+
+- 首版只提供安裝與離線，不保存文章；只有既有主題選擇持久化。不要把快取程式資源擴充為草稿保存、同步或外部圖片快取，除非使用者另有要求。離線可用須先完成連線快取；清除資料或瀏覽器回收快取後需重新連線，巴哈發文仍需網路。
+- [manifest](../../../public/manifest.webmanifest) 的 `id`／`start_url`／`scope` 與 `/sw.js` 註冊範圍目前皆為網域根目錄；Vite 的 `base: "./"` 不代表 PWA 已支援子路徑。改部署路徑時一併檢查註冊 URL、manifest、[安裝圖示](../../../public/icons) 及離線導覽範圍。
+- `npm run build` 在 Vite 之後執行 Workbox `generateSW`，產生 `dist/sw.js`；不要手改生成檔。保留必要資源缺漏／超量／建置警告即失敗的檢查，新增必要的 public 資源時更新快取清單。只對根目錄及 `index.html`（含查詢參數）提供離線首頁，不用首頁遮蔽未知路徑。
+- 保留 `skipWaiting: false`、`clientsClaim: true`、過期快取清理及 `updateViaCache: "none"`。新版須等所有受控工具分頁／獨立視窗關閉後套用；不要傳送 `SKIP_WAITING` 或在 `controllerchange` 強制重載，否則會清空未保存的文章。更新提示須提醒先另存原始 Markdown。
+- `initPwa()` 僅在正式建置註冊；開發模式不啟用。`#pwa-status` 與轉換／剪貼簿訊息分開，完成快取且 worker 已啟用才顯示離線就緒。啟動時涵蓋既有 waiting worker，回前景／恢復連線時檢查更新至少間隔一分鐘；下載失敗保留舊版，連線恢復且檢查成功後清除失敗提示。
+- 安裝按鈕只在 `beforeinstallprompt` 可用時顯示，每個事件只能使用一次；取消後等新事件再開放重試，不重用舊事件。安裝完成或 standalone 模式隱藏按鈕；iPhone／iPad 操作說明與程式化安裝提示分開，不承諾各瀏覽器都有相同入口。
+- PWA 改動搭配 [tests/pwa.test.ts](../../../tests/pwa.test.ts) 與 [scripts/verify-pwa.mjs](../../../scripts/verify-pwa.mjs)。先建置，首次準備 Chromium 用 `npx playwright install chromium`，再執行 `npm run test:pwa`；手動檢查用 `npm run preview`，與開發伺服器使用不同連接埠，避免舊 worker 干擾。
+- 瀏覽器驗證保留真實 worker 的 A／B／C 版本流程：雙分頁原稿不變、只關閉一頁仍等待、全部關閉後升級、新版必要資源失敗仍能離線開舊版；另驗證未快取／清除資料、三款上色、匯出及外部圖片失敗。讀取剪貼簿前等待複製完成訊息，避免讀到前次內容。腳本使用暫存建置，不部署測試版本；截圖位置可由 `PWA_ARTIFACT_DIR` 指定。
+- 已測環境與限制以 [PWA 驗證紀錄](../../../docs/pwa-verification.md) 為準；manifest 合法、安裝按鈕出現、390px 或 headless Chromium 通過，不等於桌面安裝後啟動或 Android／iOS 實機通過。不要把固定測試數量或資源大小當成維護要求。
+
 ## 已知相容性陷阱
 
 詳細來源與測試環境以 [COMPATIBILITY.md](../../../COMPATIBILITY.md) 為準，修改相關行為時同步更新它。
@@ -81,6 +94,7 @@ description: 開發、除錯及維護本 repo 的巴哈姆特 Markdown 轉換器
 - 表格改動：涵蓋左／中／右／未指定及混合對齊、多列與空白格，確認表頭和資料一致；檢查引用內表格、連結／圖片／粗體、跳脫管線符號及不可信 HTML。驗證三種輸出保留欄列、提醒去重，原始碼沒有捲動容器或額外 LF。
 - 操作／輸出共享：更新 [tests/ui.test.ts](../../../tests/ui.test.ts)。涵蓋中文字組字、快捷鍵、重新轉換待處理輸入、雙 clipboard payload、拒絕後選取替代流程，以及下載內容。
 - 程式變動執行 `npm test`、`npm run build`；測試數量以當次結果為準。純文件／技能修改檢查連結與內容即可，不必為無關變更重跑完整瀏覽器流程。
+- PWA、快取資源或建置／部署流程變更時，另執行本文「PWA 維護」的瀏覽器驗證，更新對應證據及 README 操作說明。
 - 涉及排版時，以 `npm run dev` 檢查桌面深淺主題和 390px 手機配置，確認頁面不橫向溢出。空白行需量測高度大於零；等寬字體需確認樣式或實際對齊，DOM 裡有標籤不足以證明可見。
 - 寬表格：以長網址、連續字串和多欄內容測量捲動容器的 `clientWidth`／`scrollWidth`，並比較整頁寬度與視窗；確認內容完整及聚焦後方向鍵可改變 `scrollLeft`。表格可捲動與整頁不溢出需分別驗證。
 - 瀏覽器回報 clipboard 寫入成功不代表貼到巴哈仍保留 HTML。[tests/paste-target.html](../../../tests/paste-target.html) 只供本機測試，不在正式建置。不得將 clipboard 替身測試稱為人工貼上通過。
@@ -90,9 +104,10 @@ description: 開發、除錯及維護本 repo 的巴哈姆特 Markdown 轉換器
 
 僅當當前任務包含發布時執行推送／部署；此技能本身不授權外部變更。
 
-- 現有 GitHub Actions：PR 執行測試／建置；main 通過後上傳 `dist` 並部署 Pages。先檢查當前分支與遠端狀態，不覆蓋不相關的改動。
+- 現有 GitHub Actions：PR 執行單元測試、建置及 `test:pwa` Chromium 驗證；main 全部通過後上傳 `dist` 並部署 Pages。先檢查當前分支與遠端狀態，不覆蓋不相關的改動。
 - 現有正式站為 `https://bahamut-markdown-converter.jakeuj.com/`，Vite `base: "./"`。除非任務要求，不改 CNAME、DNS 或沿用歷史子路徑設定。
 - 等待對應提交的工作流程成功，再檢查首頁與其實際引用的 JS／CSS 回應；用正式站範例確認新行為已上線，不能只憑 push 成功宣稱已部署。
+- PWA 發布另查 manifest、圖示與 `sw.js` 回應，使用全新瀏覽器環境完成快取後斷網重開、轉換及匯出，避免舊快取造成誤判。回退須重新建置並部署含 PWA 的已知正常版本，保留固定 `sw.js` 更新網址；只刪除該檔不會解除使用者既有 worker。
 - 回報具體改動、實際測試、部署結果及剩餘限制；若因環境無法測外部編輯器，標示未驗證，不以本機預覽替代。
 
 ## 巴哈文章預覽驗證
