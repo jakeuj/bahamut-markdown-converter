@@ -23,6 +23,8 @@ export const sample = `# 把冒險筆記，變成一篇好文章
 
 ## 一段程式碼，也要好好保留
 
+程式碼預設上色；可以切換 Xcode、GitHub Light、VS2015 Dark，或關閉上色保留單色。
+
 \`\`\`javascript
 const items = ["靈感", "筆記"];
 

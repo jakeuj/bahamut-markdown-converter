@@ -78,12 +78,13 @@ describe("published-post regressions", () => {
   it("keeps all code blanks outside font spans and preserves plain whitespace", () => {
     const input = "~~~\na  \n\n   \n\tb\\\n\n~~~";
     const { r, el } = dom(input);
-    expect(el.children).toHaveLength(5);
+    const code = el.querySelector("td") ?? el;
+    expect(code.children).toHaveLength(5);
     for (const i of [1, 2, 4]) {
-      expect(el.children[i].querySelector("span,font")).toBeNull();
-      expect(el.children[i].textContent).toContain("\u00a0");
+      expect(code.children[i].querySelector("span,font")).toBeNull();
+      expect(code.children[i].textContent).toContain("\u00a0");
     }
-    expect(el.querySelectorAll("span")).toHaveLength(2);
+    expect(el.querySelectorAll('span[style*="font-family"]')).toHaveLength(2);
     expect(r.plainText).toBe("a  \n\n   \n    b\\\n");
     expect(r.bbcode).not.toContain("\n");
     expect(r.bbcode).not.toContain("[quote]");

@@ -14,6 +14,7 @@ description: 開發、除錯及維護本 repo 的巴哈姆特 Markdown 轉換器
 | 任務 | 優先讀取 |
 | --- | --- |
 | 轉換規則、巢狀結構、跳脫與空白 | [src/converter.ts](../../../src/converter.ts)、[RULES.md](../../../RULES.md) |
+| 程式碼上色、語言與配色 | [src/highlight.ts](../../../src/highlight.ts)、[src/themes](../../../src/themes)、[tests/highlight.test.ts](../../../tests/highlight.test.ts) |
 | 使用者操作、雙輸出與下載 | [src/main.ts](../../../src/main.ts)、[index.html](../../../index.html)、[src/style.css](../../../src/style.css) |
 | 新語法或巴哈呈現不符預期 | [COMPATIBILITY.md](../../../COMPATIBILITY.md)，再查對應測試 |
 | 範例與操作說明 | [src/sample.ts](../../../src/sample.ts)、[README.md](../../../README.md) |
@@ -31,12 +32,21 @@ description: 開發、除錯及維護本 repo 的巴哈姆特 Markdown 轉換器
 - 純文字保留可讀的清單編號、引用層級、段落與程式碼空白；與 HTML 不必逐位元相同，但文字內容不應遺失。
 - 文字、URL 與屬性分開跳脫。預覽只接受轉換器產生的限定 HTML；原始 HTML 保留為文字。URL 僅接受 HTTP(S)，拒絕帳密、危險協定及屬性注入。
 
-## 表格對齊與捲動
+## 程式碼上色
+
+- `ConvertOptions.codeHighlight` 提供 `enabled`、`theme`、`defaultLanguage`；省略時為開啟、`xcode`、`auto`，另有 `github`、`vs2015`。設定只存在當次頁面，與網站明暗主題獨立；不影響行內程式碼及純文字輸出。關閉時走原有單色輸出。
+- 圍欄第一個語言識別字優先於預設語言；`text`／`txt`／`plaintext` 維持單色，未知語言維持單色並去重提醒。以 `src/highlight.ts` 註冊的語言及別名為準；自動偵測限定該清單，無判定則單色，不替未知語言猜測其他語言。
+- 先展開 Tab，再對完整區塊上色以保留跨行狀態；每次轉換依結構節點快取一次結果（含回退），供 HTML 與 BBCode 共用。單區塊超過 20,000 或累計待處理量超過 100,000 字元時回退並提醒；目前以 JavaScript 字串長度計數。
+- 使用 highlight.js core 的 `highlight`／`highlightAuto`，不使用舊版 `fixMarkup`。以 htmlparser2 解析文字與限定的 span/class，將受控樣式轉為片段；不得直接插入上色器 HTML。解析後文字須等於輸入，解析／上色失敗則保留原文並回退單色，核心不依賴瀏覽器 DOM。
+- 上色區塊以單格表格承載底色及邊框，逐行 div，非空白行用 Courier New；跨行片段在每行關閉及重開樣式，空白行沿用無 font 的 NBSP div。保留尾端空白行；`white-space:pre` 容器內不能插入生成用的排版 LF，否則會增高。HTML 的 td 需明確內嵌主題底色，避免網站一般表頭 CSS 蓋掉配色。
+- 主題取自固定的 `src/themes/*.txt?raw`，僅解析受控前景／背景、粗體、斜體、底線及巢狀繼承；副檔名是刻意選擇，改成 `.css?raw` 曾被 Vitest 的 CSS 處理替換而遺失配色。變更主題時維護 [主題授權](../../../src/themes/LICENSE) 與 [隨站授權註記](../../../public/THIRD_PARTY_NOTICES.txt)，不複製參考工具的整份舊程式。
+
+## 一般 Markdown 表格對齊與捲動
 
 - 結構以 `align?: "left" | "center" | "right"` 保留表頭與資料格對齊，只辨識 markdown-it 的已知對齊值，不搬入任意 `style` 或 HTML 屬性。未指定時不新增對齊屬性。
 - 巴哈輸出 `[td align=left|center|right]`，HTML 使用內嵌 `text-align`；表頭維持粗體。純文字維持欄位順序及分隔，不用空白模擬對齊。
-- 每張 HTML 表格外的捲動容器包含 `role="region"`、繁體中文 `aria-label`、`tabindex="0"` 及內嵌 `max-width:100%;overflow-x:auto`。保留儲存格折行，內容超出時局部捲動，不全面套用 `nowrap`。巴哈原始碼不含此容器，不截斷內容或重組欄列。
-- 有表格便顯示一次「寬表格在巴哈手機版可能超出畫面；本機捲動效果不代表巴哈貼上結果。」不以欄數推定實際溢出，也不將本機捲動宣稱為巴哈端功能。
+- 每張 HTML 表格外的捲動容器包含 `role="region"`、繁體中文 `aria-label`、`tabindex="0"` 及內嵌 `max-width:100%;overflow-x:auto`。一般資料格保留折行；程式碼承載表格則以 `white-space:pre` 保留長行，兩者皆局部捲動。巴哈原始碼不含此容器，不截斷內容或重組欄列。
+- 有 Markdown 資料表格便顯示一次「寬表格在巴哈手機版可能超出畫面；本機捲動效果不代表巴哈貼上結果。」程式碼的承載表格不觸發此提醒。不以欄數推定實際溢出，也不將本機捲動宣稱為巴哈端功能。
 
 ## 已知相容性陷阱
 
@@ -56,6 +66,7 @@ description: 開發、除錯及維護本 repo 的巴哈姆特 Markdown 轉換器
 沿用 repo 的 Node/npm 環境，CI 目前使用 Node 24；需要重建依賴時以 lockfile 執行 `npm ci`。
 
 - 轉換邏輯：更新 [tests/converter.test.ts](../../../tests/converter.test.ts) 與 [tests/compatibility.test.ts](../../../tests/compatibility.test.ts)。用真實 Markdown 與 DOM 結構驗證巢狀、段落、文字及安全性，不只比對單一序列化字串。
+- 上色改動：更新 `tests/highlight.test.ts`，涵蓋語言優先序／別名、偵測、三主題、停用及超量／錯誤回退；驗證跨行狀態、縮排、連續與尾端空白行、中文字與 emoji、字面標記及不可信輸入。比較文字、行數與樣式平衡，不綁定 span 數量；舊單色精確輸出測試需明確關閉上色。介面測試涵蓋組字期間設定變更，以及複製／下載取得最新設定。
 - 表格改動：涵蓋左／中／右／未指定及混合對齊、多列與空白格，確認表頭和資料一致；檢查引用內表格、連結／圖片／粗體、跳脫管線符號及不可信 HTML。驗證三種輸出保留欄列、提醒去重，原始碼沒有捲動容器或額外 LF。
 - 操作／輸出共享：更新 [tests/ui.test.ts](../../../tests/ui.test.ts)。涵蓋中文字組字、快捷鍵、重新轉換待處理輸入、雙 clipboard payload、拒絕後選取替代流程，以及下載內容。
 - 程式變動執行 `npm test`、`npm run build`；測試數量以當次結果為準。純文件／技能修改檢查連結與內容即可，不必為無關變更重跑完整瀏覽器流程。
@@ -75,12 +86,14 @@ description: 開發、除錯及維護本 repo 的巴哈姆特 Markdown 轉換器
 
 ## 巴哈文章預覽驗證
 
-涉及巴哈排版時另讀 [repo 內文章預覽證據](../../../docs/editor-preview-evidence.md)，依當次介面確認操作目標。
+涉及巴哈排版時另讀 [repo 內文章預覽證據](../../../docs/editor-preview-evidence.md) 及 [相容性紀錄](../../../COMPATIBILITY.md) 的相關後續結果，依當次介面確認操作目標。
 
-- 在已授權的測試編輯器重新確認內容空白，再填入轉換器生成的整合測試原始碼；不覆蓋既有草稿。點「原始碼」僅切換編輯模式，上方「預覽」才提供電腦／手機文章預覽。已觀察到的 iframe 為 `#editor`、`#desktopPreview`、`#mobilePreview`，使用前確認現況。
+- 先確認測試編輯器現有內容；保留既有草稿，除非使用者已明確授權清除或替換。這項授權在同一任務持續有效，不重複詢問，也不因另開頁面缺少控制項便放棄已授權的原分頁。填入轉換器實際生成的測試輸出。
+- 點「原始碼」僅切換編輯模式，上方「預覽」才提供電腦／手機文章預覽。已觀察到來源欄位 `#source`，以及 iframe `#editor`、`#desktopPreview`、`#mobilePreview`，使用前確認現況。同一 URL 的新分頁曾沒有原始碼按鈕，不能據此推論既有分頁也不可用，避免無必要地重載可用編輯器。
 - 分別檢查編輯區、電腦文章預覽與手機文章預覽的內容、對齊 computed style、表格及外層容器尺寸，配合畫面確認。DOM 屬性保留不足以證明樣式生效；手機網頁預覽也不是原生 App 驗證。
 - DOM 讀取失敗而快照／截圖仍可用時，記錄實際完成的視覺觀察及未完成的量測，不將工具逾時判成網站不支援，也不把目視結果寫成精確尺寸驗證。
 - 原始碼與富文字貼上分開記錄；正式貼文、文章預覽與使用者回報保留各自來源及日期。編輯器結果不能直接升格為正式發文結果。
+- 2026-09-08 三款上色原始碼已通過電腦／手機文章預覽，含中間與尾端空白行；這不推翻正式貼文的實體解碼限制。同次網站「複製排版」產生 HTML/plain payload，但工具 Meta+V 貼入後只剩文字，故該富文字路徑未通過；尚未定位工具橋接或巴哈處理，不泛稱所有瀏覽器皆不支援。詳細數值與後續結論以相容性紀錄為準。
 - 結束後清除自行填入的測試內容，還原原有空白狀態並保留使用者分頁；一般格式驗證不包含發布、備份、修改貼文或寄信。
 
 100% 表格仍可能因長內容溢出。`tab` 在已測手機預覽無縮排、div 寬高在文章預覽不生效、td valign 與圖片尺寸有裝置差異；詳細證據留在上述文件，不以這些屬性替代既有縮排或保證跨裝置尺寸。

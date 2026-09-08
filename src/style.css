@@ -1337,3 +1337,43 @@ summary:hover {
     font-size: 12px;
   }
 }
+
+.code-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin: 16px 0;
+}
+.code-options label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.code-options select {
+  max-width: 100%;
+  padding: 6px;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+}
+.code-options select option {
+  color: #222;
+  background: #fff;
+}
+.code-options :focus-visible {
+  outline: 2px solid #087f74;
+  outline-offset: 3px;
+}
+.article-preview [aria-label="程式碼，可水平捲動"] {
+  min-width: 0;
+}
+
+.code-hint {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+  margin-bottom: 16px;
+}

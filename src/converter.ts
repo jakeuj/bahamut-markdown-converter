@@ -1,8 +1,16 @@
 import MarkdownIt from "markdown-it";
+import {
+  highlightCode,
+  supportsLanguage,
+  type HighlightOptions,
+  type Highlighted,
+  type Style,
+} from "./highlight";
 type Token = ReturnType<typeof md.parse>[number];
 
 export interface ConvertOptions {
   tabSize?: number;
+  codeHighlight?: HighlightOptions;
 }
 export interface ConversionResult {
   bbcode: string;
@@ -12,6 +20,7 @@ export interface ConversionResult {
 }
 interface Node {
   kind: string;
+  language?: string;
   text?: string;
   url?: string;
   start?: number;
@@ -120,6 +129,10 @@ function tree(tokens: Token[]): Node[] {
     }
     const node: Node = {
       kind: token.type.replace(/_open$/, ""),
+      language:
+        token.type === "fence"
+          ? token.info.trim().split(/\s+/)[0].toLowerCase()
+          : undefined,
       text: token.content,
       tight: token.hidden,
       align:
@@ -189,6 +202,44 @@ export function convertMarkdown(
   options: ConvertOptions = {},
 ): ConversionResult {
   const warnings = new Set<string>();
+  const highlighted = new Map<Node, Highlighted | undefined>();
+  let highlightedSize = 0;
+  const config = options.codeHighlight;
+  const theme =
+    config?.theme === "github" || config?.theme === "vs2015"
+      ? config.theme
+      : "xcode";
+  function prepareCode(n: Node, text: string): Highlighted | undefined {
+    if (highlighted.has(n)) return highlighted.get(n);
+    highlighted.set(n, undefined);
+    if (config?.enabled === false) return;
+    const language = (
+      n.language ||
+      config?.defaultLanguage ||
+      "auto"
+    ).toLowerCase();
+    if (["text", "txt", "plaintext"].includes(language)) return;
+    if (language !== "auto" && !supportsLanguage(language)) {
+      warnings.add(
+        "有不支援的程式語言，該區塊維持單色；請調整圍欄語言或未標示語言設定。",
+      );
+      return;
+    }
+    if (text.length > 20000 || highlightedSize + text.length > 100000) {
+      warnings.add(
+        "程式碼超過上色處理上限，超出部分維持單色（每區塊 20,000、合計 100,000 字元）。",
+      );
+      return;
+    }
+    highlightedSize += text.length;
+    try {
+      const value = highlightCode(text, language, theme);
+      highlighted.set(n, value);
+      return value;
+    } catch {
+      warnings.add("部分程式碼上色失敗，已保留原文並改為單色。");
+    }
+  }
   const tabSize =
     Number.isInteger(options.tabSize) &&
     options.tabSize! >= 1 &&
@@ -329,6 +380,66 @@ export function convertMarkdown(
       })
       .join("");
   };
+  function styledText(text: string, style: Style, f: Format): string {
+    let value = encode(text, f).replace(/ /g, "&#160;");
+    if (f === "bb") {
+      if (style.underline) value = wrap("u", value, f);
+      if (style.italic) value = wrap("i", value, f);
+      if (style.bold) value = wrap("b", value, f);
+      if (style.background)
+        value = wrap("bgcolor", value, f, `=${style.background}`);
+      if (style.color) value = wrap("color", value, f, `=${style.color}`);
+      return value;
+    }
+    const css = [
+      style.color && `color:${style.color}`,
+      style.background && `background-color:${style.background}`,
+      style.bold && "font-weight:bold",
+      style.italic && "font-style:italic",
+      style.underline && "text-decoration:underline",
+    ]
+      .filter(Boolean)
+      .join(";");
+    return `<span style="${css}">${value}</span>`;
+  }
+  function renderCode(n: Node, f: Format): string {
+    const raw = (n.text ?? "").replace(/\n$/, "");
+    if (f === "plain") return literalBlock(raw, f, true);
+    const data = prepareCode(n, expandTabs(raw, tabSize));
+    if (!data) return literalBlock(raw, f, true);
+    const content = data.lines
+      .map((line) => {
+        const text = line.map((p) => p.text).join("");
+        if (!text.trim())
+          return div(encode(text, f).replace(/ /g, "&#160;") || "&#160;", f);
+        const inner = line
+          .map((p) =>
+            styledText(
+              p.text,
+              {
+                ...p.style,
+                background:
+                  p.style.background === data.base.background
+                    ? undefined
+                    : p.style.background,
+              },
+              f,
+            ),
+          )
+          .join("");
+        return div(
+          f === "bb"
+            ? `[font=Courier New]${inner}[/font]`
+            : `<span style="font-family:Courier New,monospace">${inner}</span>`,
+          f,
+        );
+      })
+      .join("")
+      .replace(/\n/g, "");
+    if (f === "bb")
+      return `[table width=100% border=1 cellspacing=0 cellpadding=4][tr][td bgcolor=${data.base.background}]${content}[/td][/tr][/table]`;
+    return `<div role="region" aria-label="程式碼，可水平捲動" tabindex="0" style="max-width:100%;overflow-x:auto"><table style="width:100%;border-collapse:collapse;background-color:${data.base.background};color:${data.base.color};border:1px solid ${data.base.color}"><tbody><tr><td style="background-color:${data.base.background};padding:4px;white-space:pre;overflow-wrap:normal;word-break:normal;font-size:15px;line-height:1.7">${content}</td></tr></tbody></table></div>`;
+  }
   function render(n: Node, f: Format, indent = 0): string {
     if (
       n.text &&
@@ -358,7 +469,7 @@ export function convertMarkdown(
         warnings.add(
           "程式碼採逐行區塊，不使用 [code]；Tab 與空格已轉成視覺縮排，複製後不保證逐位元相同。",
         );
-        return literalBlock((n.text ?? "").replace(/\n$/, ""), f, true);
+        return renderCode(n, f);
       case "math_literal":
         warnings.add("公式保留原文，未渲染 LaTeX。");
         return encode(n.text ?? "", f);

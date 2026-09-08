@@ -148,6 +148,30 @@
               >
             </p>
           </div>
+          <div class="code-options" role="group" aria-label="程式碼上色設定">
+            <label
+              ><input type="checkbox" id="code-highlight" checked />
+              程式碼上色</label
+            >
+            <label for="code-theme"
+              >程式碼配色
+              <select id="code-theme">
+                <option value="xcode">Xcode</option>
+                <option value="github">GitHub Light</option>
+                <option value="vs2015">VS2015 Dark</option>
+              </select></label
+            >
+            <label for="code-language"
+              >未標示語言
+              <select id="code-language">
+                <option value="auto">自動偵測</option>
+                <option value="plaintext">純文字</option>
+              </select></label
+            >
+          </div>
+          <p class="code-hint">
+            圍欄語言優先；自動偵測可能誤判，可指定未標示語言或選純文字。程式碼配色不隨網站主題切換。
+          </p>
           <div class="editor-grid">
             <section
               class="editor-panel input-panel"
@@ -372,8 +396,11 @@
               </tr>
               <tr>
                 <td>程式碼區塊</td>
-                <td>逐行 <code>[div]</code>＋等寬字體；空白行不包字體</td>
-                <td>不使用 <code>[code]</code>；不是原始碼備份</td>
+                <td>
+                  預設語法上色，三款配色；逐行
+                  <code>[div]</code>＋等寬字體；空白行不包字體
+                </td>
+                <td>可關閉上色；不使用 <code>[code]</code>；不是原始碼備份</td>
               </tr>
               <tr>
                 <td>HTML、LaTeX 公式</td>

@@ -186,3 +186,55 @@ it("shares quotes, code styling and entity fidelity across all exports", async (
   get("download-txt").click();
   await expect(downloadBlob!.text()).resolves.toBe(result.bbcode);
 });
+
+it("updates code controls and shares selected styling across clipboard and downloads", async () => {
+  const input = "```js\nconst value = 42;\n\n```";
+  await type(input);
+  const select = get<HTMLSelectElement>("code-theme");
+  select.value = "vs2015";
+  select.dispatchEvent(new Event("change"));
+  const expected = convertMarkdown(input, {
+    codeHighlight: { theme: "vs2015" },
+  });
+  expect(get<HTMLTextAreaElement>("source").value).toBe(expected.bbcode);
+  get("theme").click();
+  expect(get<HTMLTextAreaElement>("source").value).toBe(expected.bbcode);
+  get("copy-rich").click();
+  await vi.runAllTimersAsync();
+  await expect(written!["text/html"].text()).resolves.toBe(expected.html);
+  await expect(written!["text/plain"].text()).resolves.toBe(expected.plainText);
+  get("copy-source").click();
+  await vi.runAllTimersAsync();
+  expect(writeText).toHaveBeenLastCalledWith(expected.bbcode);
+  get("download-txt").click();
+  await expect(downloadBlob!.text()).resolves.toBe(expected.bbcode);
+  get("download-html").click();
+  await expect(downloadBlob!.text()).resolves.toContain(expected.html);
+  get<HTMLInputElement>("code-highlight").click();
+  expect(select.disabled).toBe(true);
+  expect(get<HTMLTextAreaElement>("source").value).toBe(
+    convertMarkdown(input, { codeHighlight: { enabled: false } }).bbcode,
+  );
+});
+it("applies code settings after composition and handles pending input for copying", async () => {
+  get("input").dispatchEvent(new CompositionEvent("compositionstart"));
+  const input = "```\nconst x = 1;\n```";
+  await type(input);
+  const lang = get<HTMLSelectElement>("code-language");
+  lang.value = "javascript";
+  lang.dispatchEvent(new Event("change"));
+  expect(get("preview").innerHTML).toBe("");
+  get("input").dispatchEvent(new CompositionEvent("compositionend"));
+  expect(get<HTMLTextAreaElement>("source").value).toBe(
+    convertMarkdown(input, { codeHighlight: { defaultLanguage: "javascript" } })
+      .bbcode,
+  );
+  get<HTMLTextAreaElement>("input").value = '```python\nprint("new")\n```';
+  get("copy-source").click();
+  await vi.runAllTimersAsync();
+  expect(writeText).toHaveBeenLastCalledWith(
+    convertMarkdown(get<HTMLTextAreaElement>("input").value, {
+      codeHighlight: { defaultLanguage: "javascript" },
+    }).bbcode,
+  );
+});

@@ -77,7 +77,7 @@ describe("lists, quotes and tables", () => {
 describe("code fidelity", () => {
   const code = "```sh\n\t[x] <div> **bold**\n\n  echo ok \\\n    --flag\n```";
   it("preserves each line and encodes syntax without parsing it", () => {
-    const r = convertMarkdown(code);
+    const r = convertMarkdown(code, { codeHighlight: { enabled: false } });
     expect(r.bbcode).toContain(
       "[div][font=Courier New]&#160;&#160;&#160;&#160;&#91;x&#93;&#160;&lt;div&gt;&#160;**bold**[/font][/div]",
     );
@@ -87,16 +87,26 @@ describe("code fidelity", () => {
     expect(r.bbcode).not.toContain("[b]");
   });
   it("keeps code trailing blank lines", () =>
-    expect(convertMarkdown("```\na\n\n```").bbcode).toBe(
-      "[div][font=Courier New]a[/font][/div][div]&#160;[/div]",
-    ));
+    expect(
+      convertMarkdown("```\na\n\n```", { codeHighlight: { enabled: false } })
+        .bbcode,
+    ).toBe("[div][font=Courier New]a[/font][/div][div]&#160;[/div]"));
   it("handles an unclosed fence", () =>
-    expect(convertMarkdown("```\n[div]\nhello").bbcode).toBe(
+    expect(
+      convertMarkdown("```\n[div]\nhello", {
+        codeHighlight: { enabled: false },
+      }).bbcode,
+    ).toBe(
       "[div][font=Courier New]&#91;div&#93;[/font][/div][div][font=Courier New]hello[/font][/div]",
     ));
   it("supports tilde and indented code", () => {
-    expect(convertMarkdown("~~~\n[x]\n~~~").bbcode).toContain("&#91;x&#93;");
-    expect(convertMarkdown("    [x]").bbcode).toContain("&#91;x&#93;");
+    expect(
+      convertMarkdown("~~~\n[x]\n~~~", { codeHighlight: { enabled: false } })
+        .bbcode,
+    ).toContain("&#91;x&#93;");
+    expect(
+      convertMarkdown("    [x]", { codeHighlight: { enabled: false } }).bbcode,
+    ).toContain("&#91;x&#93;");
   });
   it("expands tabs at column boundaries", () =>
     expect(expandTabs("a\tb\n\tX")).toBe("a   b\n    X"));
@@ -192,7 +202,9 @@ describe("formulas and complete sample", () => {
 });
 
 it("does not insert source newlines that Bahamut turns into extra br tags", () => {
-  const result = convertMarkdown("```\na\n\nb\n```");
+  const result = convertMarkdown("```\na\n\nb\n```", {
+    codeHighlight: { enabled: false },
+  });
   expect(result.bbcode).toBe(
     "[div][font=Courier New]a[/font][/div][div]&#160;[/div][div][font=Courier New]b[/font][/div]",
   );

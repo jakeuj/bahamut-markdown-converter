@@ -82,3 +82,18 @@ MIT © 2026 jakeuj。非巴哈姆特官方工具，巴哈姆特名稱屬其權�
 Markdown 表格的 `:---`、`:---:`、`---:` 分別保留為左、中、右對齊，未指定者維持預設。HTML 輸出每張表格都有可聚焦的局部橫向捲動區域；寬表格可觸控捲動或聚焦後使用方向鍵。原始碼不帶捲動容器、不截斷欄列；巴哈手機版可能溢出，工具會提醒。
 
 [編輯器與文章預覽證據](docs/editor-preview-evidence.md) 區分電腦／手機網頁預覽及正式發文，不代表原生 App 已驗證。
+
+
+## 程式碼語法上色
+
+Markdown 圍欄與縮排程式碼預設上色，可選 Xcode、GitHub Light、VS2015 Dark；配色與網站明暗模式分開。勾選框可關閉上色，設定只作用於當次頁面。預覽、HTML 剪貼簿／下載及巴哈原始碼使用相同格式資料，純文字保持原文。
+
+圍欄語言優先；未標示者可自動偵測、指定預設語言或選純文字。支援 JavaScript、TypeScript、C、C++、C#、Java、Python、Go、Rust、Bash、PowerShell、SQL、JSON、YAML、XML/HTML、CSS、PHP、Ruby、Markdown、Diff 與套件提供的別名。自動偵測可能誤判，建議在 Markdown 標示語言。text/txt/plaintext、未知語言、超量或失敗區塊保留單色；未知、超量與失敗會提醒。
+
+`convertMarkdown(input, { tabSize, codeHighlight: { enabled, theme, defaultLanguage } })` 保持同步且不依賴瀏覽器 DOM；主題值 xcode/github/vs2015，預設 enabled=true、theme=xcode、defaultLanguage=auto。單區塊上限 20,000、總上色量 100,000 UTF-16 字元。關閉上色不受此處理上限影響。
+
+參考 [ren1244 的 HighlightToBBCode](https://github.com/jakeuj/ren1244.github.io/tree/master/HighlightToBBCode) 的呈現方式重新實作。語法引擎與三款主題取自安裝版本的 highlight.js，配色來源與作者註記位於 `src/themes/*.txt`，BSD-3-Clause 授權保留於 `src/themes/LICENSE`；只轉換顏色、背景、粗體、斜體與底線，不承諾重現上游所有 CSS 版面規則。未複製參考工具的舊版 API 或主程式。更新主題時從 lockfile 對應套件重新同步三份文字樣式，並重跑上色測試。
+
+外部驗證限制見 COMPATIBILITY：本機上色成功不等於正式發文或富文字貼上成功。
+
+本輪三主題原始碼已通過巴哈編輯區及電腦／手機文章預覽；富文字上色保留在內建瀏覽器工具貼上路徑未通過，請優先以原始碼模式驗證上色結果。

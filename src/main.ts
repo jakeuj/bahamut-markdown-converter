@@ -1,4 +1,5 @@
 import "./style.css";
+import { codeLanguages, type CodeTheme } from "./highlight";
 import { convertMarkdown, type ConversionResult } from "./converter";
 import { sample } from "./sample";
 const el = <T extends HTMLElement = HTMLElement>(id: string) =>
@@ -7,6 +8,42 @@ const input = el<HTMLTextAreaElement>("input");
 const source = el<HTMLTextAreaElement>("source");
 const preview = el("preview");
 const status = el("status");
+const highlightToggle = el<HTMLInputElement>("code-highlight");
+const codeTheme = el<HTMLSelectElement>("code-theme");
+const codeLanguage = el<HTMLSelectElement>("code-language");
+const languageNames: Record<string, string> = {
+  javascript: "JavaScript",
+  typescript: "TypeScript",
+  c: "C",
+  cpp: "C++",
+  csharp: "C#",
+  java: "Java",
+  python: "Python",
+  go: "Go",
+  rust: "Rust",
+  bash: "Bash",
+  powershell: "PowerShell",
+  sql: "SQL",
+  json: "JSON",
+  yaml: "YAML",
+  xml: "XML / HTML",
+  css: "CSS",
+  php: "PHP",
+  ruby: "Ruby",
+  markdown: "Markdown",
+  diff: "Diff",
+};
+for (const name of codeLanguages) {
+  const option = document.createElement("option");
+  option.value = name;
+  option.textContent = languageNames[name] ?? name;
+  codeLanguage.append(option);
+}
+for (const control of [highlightToggle, codeTheme, codeLanguage])
+  control.addEventListener("change", () => {
+    codeTheme.disabled = codeLanguage.disabled = !highlightToggle.checked;
+    if (!composing) convert(true);
+  });
 let result: ConversionResult = convertMarkdown("");
 let timer: ReturnType<typeof setTimeout> | undefined;
 let composing = false;
@@ -15,7 +52,13 @@ const count = (text: string) =>
   `${Array.from(text).length.toLocaleString("zh-TW")} 字元`;
 function convert(announce = false) {
   clearTimeout(timer);
-  result = convertMarkdown(input.value);
+  result = convertMarkdown(input.value, {
+    codeHighlight: {
+      enabled: highlightToggle.checked,
+      theme: codeTheme.value as CodeTheme,
+      defaultLanguage: codeLanguage.value,
+    },
+  });
   source.value = result.bbcode;
   preview.innerHTML = result.html; // Only the converter's escaped, allowlisted HTML reaches this sink.
   preview.hidden = !result.html;
