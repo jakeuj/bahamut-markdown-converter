@@ -3,3 +3,6 @@ dist/
 .DS_Store
 coverage/
 *.local
+
+# Generated Graphify analysis and caches
+/graphify-out/
