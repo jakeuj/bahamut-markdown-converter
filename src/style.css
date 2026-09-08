@@ -168,10 +168,15 @@ code {
   height: 34px;
   display: grid;
   place-items: center;
+  padding: 0;
+  flex-shrink: 0;
+  line-height: 1;
   border-radius: 50%;
 }
-.icon-button {
-  font-size: 25px;
+.nav-actions svg {
+  display: block;
+  width: 24px;
+  height: 24px;
 }
 .icon-button:hover,
 .github-link:hover {

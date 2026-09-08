@@ -28,9 +28,9 @@ export const sample = `# 把冒險筆記，變成一篇好文章
 
 ### 圖片也能帶進文章
 
-![巴哈姆特 Logo](https://i2.bahamut.com.tw/baha_logo5.png)
+![GitHub Octocat 大圖預覽](https://octodex.github.com/images/original.png)
 
-圖片使用外部網址；載入範例會向圖片來源請求圖片，貼到巴哈後仍需確認顯示效果。
+大圖會依預覽區寬度等比例縮小。圖片使用外部網址；載入範例會向圖片來源請求圖片，貼到巴哈後仍需確認顯示效果。
 
 ---
 
