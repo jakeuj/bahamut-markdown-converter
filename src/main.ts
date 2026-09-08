@@ -1,4 +1,5 @@
 import "./style.css";
+import { initMotion } from "./motion";
 import { codeLanguages, type CodeTheme } from "./highlight";
 import { convertMarkdown, type ConversionResult } from "./converter";
 import { sample } from "./sample";
@@ -240,3 +241,6 @@ themeMedia.addEventListener("change", (e) => {
   if (!chosenTheme) applyTheme(e.matches);
 });
 convert();
+
+const stopMotion = initMotion();
+if (import.meta.hot) import.meta.hot.dispose(stopMotion);
