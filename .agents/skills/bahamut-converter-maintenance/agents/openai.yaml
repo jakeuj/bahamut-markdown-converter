@@ -1,0 +1,4 @@
+interface:
+  display_name: "巴哈轉換器開發維護"
+  short_description: "維護巴哈 Markdown 轉換核心、相容性證據、介面測試及 Pages 部署"
+  default_prompt: "使用 $bahamut-converter-maintenance 維護此 repo，依已驗證的巴哈相容性規則完成修改與適當測試。"
