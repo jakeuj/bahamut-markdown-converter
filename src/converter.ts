@@ -16,6 +16,7 @@ interface Node {
   url?: string;
   start?: number;
   children: Node[];
+  tight?: boolean;
 }
 type Format = "bb" | "html" | "plain";
 const md = new MarkdownIt({
@@ -119,6 +120,7 @@ function tree(tokens: Token[]): Node[] {
     const node: Node = {
       kind: token.type.replace(/_open$/, ""),
       text: token.content,
+      tight: token.hidden,
       url: String(token.attrGet(token.type === "image" ? "src" : "href") ?? ""),
       start:
         token.type === "ordered_list_open"
@@ -187,19 +189,115 @@ export function convertMarkdown(
         ? `[${tag}${attr}]${content}[/${tag}]`
         : `<${tag}${attr}>${content}</${tag}>`;
   const div = (s: string, f: Format) =>
-    f === "plain"
-      ? `${s}\n`
-      : wrap("div", s || (f === "bb" ? "&#160;" : "<br>"), f) + "\n";
-  const children = (n: Node, f: Format) =>
-    n.children.map((c) => render(c, f)).join("");
-  const paragraph = (ns: Node[], f: Format, bold = false) =>
-    rows(ns)
-      .map((line) => {
-        let s = line.map((n) => render(n, f)).join("");
-        if (bold) s = wrap("b", s, f);
-        return div(s, f);
+    f === "plain" ? `${s}\n` : wrap("div", s || "&#160;", f) + "\n";
+  // Decide spacing from block structure, never from serialized line breaks.
+  const sequence = (ns: Node[], f: Format, indent = 0): string =>
+    ns
+      .map((n, i) => {
+        const previous = ns[i - 1];
+        const gap =
+          previous &&
+          previous.kind !== "hr" &&
+          (n.kind === "heading" ||
+            (n.kind === "paragraph" &&
+              previous.kind === "paragraph" &&
+              !n.tight &&
+              !previous.tight));
+        return (gap ? div("", f) : "") + render(n, f, indent);
       })
       .join("");
+  const children = (n: Node, f: Format) => sequence(n.children, f);
+  const spaces = (count: number, f: Format) =>
+    (f === "plain" ? " " : "&#160;").repeat(count);
+  const paragraph = (
+    ns: Node[],
+    f: Format,
+    bold = false,
+    first = "",
+    rest = "",
+  ) =>
+    rows(ns)
+      .map((line, i) => {
+        let s = line.map((n) => render(n, f)).join("");
+        if (bold) s = wrap("b", s, f);
+        return div((i === 0 ? first : rest) + s, f);
+      })
+      .join("");
+  const taskItem = (item: Node): Node => {
+    const first = item.children[0];
+    const text = first?.children[0];
+    if (
+      first?.kind !== "paragraph" ||
+      text?.kind !== "text" ||
+      !/^\[[ xX]\] /.test(text.text ?? "")
+    )
+      return item;
+    return {
+      ...item,
+      children: [
+        {
+          ...first,
+          children: [
+            {
+              ...text,
+              text: text.text!.replace(/^\[([ xX])\] /, (_, check: string) =>
+                check === " " ? "☐ " : "☑ ",
+              ),
+            },
+            ...first.children.slice(1),
+          ],
+        },
+        ...item.children.slice(1),
+      ],
+    };
+  };
+  const numberedItem = (
+    raw: Node,
+    label: string,
+    f: Format,
+    indent: number,
+  ) => {
+    const item = taskItem(raw);
+    const continuation = spaces(indent + label.length, f);
+    return item.children
+      .map((child, i) => {
+        const previous = item.children[i - 1];
+        const gap =
+          previous &&
+          previous.kind !== "hr" &&
+          (child.kind === "heading" ||
+            (previous.kind === "paragraph" &&
+              child.kind === "paragraph" &&
+              !previous.tight &&
+              !child.tight));
+        if (child.kind === "paragraph" || child.kind === "heading")
+          return (
+            (gap ? div("", f) : "") +
+            paragraph(
+              child.children,
+              f,
+              child.kind === "heading",
+              i === 0 ? spaces(indent, f) + encode(label, f) : continuation,
+              continuation,
+            )
+          );
+        return (
+          (i === 0 ? div(spaces(indent, f) + encode(label, f), f) : "") +
+          render(
+            child,
+            f,
+            indent +
+              ((f === "plain" && child.kind === "bullet_list") ||
+              (f === "plain" &&
+                child.kind === "ordered_list" &&
+                child.start === 1)
+                ? 4
+                : 0),
+          )
+        );
+      })
+      .join("");
+  };
   const literalBlock = (text: string, f: Format, code: boolean) => {
     const expanded = code ? expandTabs(text, tabSize) : text;
     return expanded
@@ -207,11 +305,25 @@ export function convertMarkdown(
       .map((line) => {
         let s = encode(line, f);
         if (f !== "plain") s = s.replace(/ /g, "&#160;");
+        if (code && line.trim() && f !== "plain") {
+          s =
+            f === "bb"
+              ? `[font=Courier New]${s}[/font]`
+              : `<span style="font-family:Courier New,monospace">${s}</span>`;
+        }
         return div(s, f);
       })
       .join("");
   };
-  function render(n: Node, f: Format): string {
+  function render(n: Node, f: Format, indent = 0): string {
+    if (
+      n.text &&
+      /&(?:[a-zA-Z][a-zA-Z0-9]*|#\d+|#x[\da-fA-F]+);/.test(n.text)
+    ) {
+      warnings.add(
+        "實體字面值在本機預覽與純文字中保留；巴哈原始碼發文可能再次解碼，已測兩層、三層編碼仍未解決。請另行保留原文。",
+      );
+    }
     switch (n.kind) {
       case "text":
         return encode(n.text ?? "", f);
@@ -251,60 +363,50 @@ export function convertMarkdown(
       case "hr":
         return f === "bb" ? "[hr]\n" : f === "html" ? "<hr>\n" : "────────\n";
       case "bullet_list":
-        if (f === "plain") return children(n, f);
-        return wrap("ul", "\n" + children(n, f), f) + "\n";
       case "ordered_list": {
-        if (n.start !== 1) {
-          warnings.add("非 1 起始的有序清單改用文字編號，以保留原始編號。");
+        const ordered = n.kind === "ordered_list";
+        const fallback = ordered && n.start !== 1;
+        if (fallback)
+          warnings.add(
+            "非 1 起始清單採文字編號，保留原始編號與手動縮排；比例字體及自動折行無法保證懸掛對齊。",
+          );
+        if (fallback || f === "plain") {
+          const offset = fallback ? indent + 4 : indent;
           return n.children
             .map((item, i) => {
-              const first = item.children[0];
-              const label: Node = {
-                kind: "text",
-                text: `${(n.start ?? 1) + i}. `,
-                children: [],
-              };
-              if (first?.kind === "paragraph")
-                return (
-                  paragraph([label, ...first.children], f) +
-                  item.children
-                    .slice(1)
-                    .map((c) => render(c, f))
-                    .join("")
-                );
-              return div(encode(label.text!, f), f) + children(item, f);
+              const label = ordered ? `${(n.start ?? 1) + i}. ` : "• ";
+              const content = numberedItem(item, label, f, offset);
+              // Keep descendants inside the owning fallback item.
+              return f === "plain" ? content : wrap("div", content, f) + "\n";
             })
             .join("");
         }
+        // Native list containers supply their own indentation.
+        return wrap(ordered ? "ol" : "ul", "\n" + children(n, f), f) + "\n";
+      }
+      case "list_item":
+        return wrap("li", children(taskItem(n), f), f) + "\n";
+      case "blockquote": {
+        const content = children(n, f);
         if (f === "plain")
-          return n.children
-            .map((item, i) => `${i + 1}. ` + children(item, f))
-            .join("");
-        return wrap("ol", "\n" + children(n, f), f) + "\n";
+          return (
+            content
+              .replace(/\n$/, "")
+              .split("\n")
+              .map((line) => `> ${line}`)
+              .join("\n") + "\n"
+          );
+        return (
+          wrap(
+            f === "bb" ? "quote" : "blockquote",
+            content,
+            f,
+            f === "html"
+              ? ' style="border-left:3px solid #8a9ba8;margin:12px 0;padding-left:16px"'
+              : "",
+          ) + "\n"
+        );
       }
-      case "list_item": {
-        const clone = {
-          ...n,
-          children: n.children.map((c) => ({
-            ...c,
-            children: [...c.children],
-          })),
-        };
-        const first = clone.children[0]?.children[0];
-        if (first?.kind === "text" && /^\[[ xX]\] /.test(first.text ?? "")) {
-          clone.children[0].children[0] = {
-            ...first,
-            text: first.text!.replace(/^\[([ xX])\] /, (_, checked: string) =>
-              checked === " " ? "☐ " : "☑ ",
-            ),
-          };
-        }
-        return f === "plain"
-          ? "• " + children(clone, f)
-          : wrap("li", children(clone, f), f) + "\n";
-      }
-      case "blockquote":
-        return div(encode("引用：", f), f) + children(n, f);
       case "table":
         if (f === "plain") return children(n, f);
         return (
@@ -366,11 +468,7 @@ export function convertMarkdown(
         return children(n, f) || encode(n.text ?? "", f);
     }
   }
-  const output = (f: Format) =>
-    nodes
-      .map((n) => render(n, f))
-      .join("")
-      .replace(/\n$/, "");
+  const output = (f: Format) => sequence(nodes, f).replace(/\n$/, "");
   // Bahamut inserts <br> for source newlines between block tags.
   // Block tags already represent every intentional line, including code blanks.
   const bbcode = output("bb").replace(/\n(?=\[)/g, "");

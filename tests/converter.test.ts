@@ -55,8 +55,8 @@ describe("lists, quotes and tables", () => {
   });
   it("preserves non-1 starting numbers including nested content", () => {
     const r = convertMarkdown("3. 三\n   - 巢狀\n4. 四");
-    expect(r.bbcode).toContain("[div]3. 三[/div]");
-    expect(r.bbcode).toContain("[div]4. 四[/div]");
+    expect(r.bbcode).toContain("[div]&#160;&#160;&#160;&#160;3. 三[/div]");
+    expect(r.bbcode).toContain("[div]&#160;&#160;&#160;&#160;4. 四[/div]");
     expect(r.bbcode).toContain("[ul]");
     expect(r.warnings.join()).toContain("文字編號");
   });
@@ -67,9 +67,11 @@ describe("lists, quotes and tables", () => {
     expect((r.html.match(/<td>/g) || []).length).toBe(4);
     expect(r.plainText).toContain("a|b | c");
   });
-  it("uses labeled quotes without quote tags", () => {
+  it("preserves quote blocks and paragraph spacing", () => {
     const r = convertMarkdown("> 引用\n>\n> 另一段");
-    expect(r.bbcode).toBe("[div]引用：[/div][div]引用[/div][div]另一段[/div]");
+    expect(r.bbcode).toBe(
+      "[quote][div]引用[/div][div]&#160;[/div][div]另一段[/div][/quote]",
+    );
   });
 });
 describe("code fidelity", () => {
@@ -77,7 +79,7 @@ describe("code fidelity", () => {
   it("preserves each line and encodes syntax without parsing it", () => {
     const r = convertMarkdown(code);
     expect(r.bbcode).toContain(
-      "[div]&#160;&#160;&#160;&#160;&#91;x&#93;&#160;&lt;div&gt;&#160;**bold**[/div]",
+      "[div][font=Courier New]&#160;&#160;&#160;&#160;&#91;x&#93;&#160;&lt;div&gt;&#160;**bold**[/font][/div]",
     );
     expect(r.bbcode).toContain("[div]&#160;[/div]");
     expect(r.plainText).toContain("  echo ok \\\n    --flag");
@@ -86,11 +88,11 @@ describe("code fidelity", () => {
   });
   it("keeps code trailing blank lines", () =>
     expect(convertMarkdown("```\na\n\n```").bbcode).toBe(
-      "[div]a[/div][div]&#160;[/div]",
+      "[div][font=Courier New]a[/font][/div][div]&#160;[/div]",
     ));
   it("handles an unclosed fence", () =>
     expect(convertMarkdown("```\n[div]\nhello").bbcode).toBe(
-      "[div]&#91;div&#93;[/div][div]hello[/div]",
+      "[div][font=Courier New]&#91;div&#93;[/font][/div][div][font=Courier New]hello[/font][/div]",
     ));
   it("supports tilde and indented code", () => {
     expect(convertMarkdown("~~~\n[x]\n~~~").bbcode).toContain("&#91;x&#93;");
@@ -191,7 +193,9 @@ describe("formulas and complete sample", () => {
 
 it("does not insert source newlines that Bahamut turns into extra br tags", () => {
   const result = convertMarkdown("```\na\n\nb\n```");
-  expect(result.bbcode).toBe("[div]a[/div][div]&#160;[/div][div]b[/div]");
+  expect(result.bbcode).toBe(
+    "[div][font=Courier New]a[/font][/div][div]&#160;[/div][div][font=Courier New]b[/font][/div]",
+  );
 });
 it("keeps numbered lists numbered in the plain-text clipboard", () => {
   expect(convertMarkdown("1. one\n2. two").plainText).toBe("1. one\n2. two");

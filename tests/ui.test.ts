@@ -165,3 +165,23 @@ describe("complete converter UI", () => {
     expect(get("warnings").hidden).toBe(false);
   });
 });
+
+it("shares quotes, code styling and entity fidelity across all exports", async () => {
+  const input = "> outer\n>\n> > inner\n\n3. item\n\n~~~\n&amp;\n\n~~~";
+  const result = convertMarkdown(input);
+  await type(input);
+  get("copy-rich").click();
+  await vi.runAllTimersAsync();
+  await expect(written!["text/html"].text()).resolves.toBe(result.html);
+  await expect(written!["text/plain"].text()).resolves.toBe(result.plainText);
+  const expected = document.createElement("div");
+  expected.innerHTML = result.html;
+  expect(get("preview").innerHTML).toBe(expected.innerHTML);
+  get("copy-source").click();
+  await vi.runAllTimersAsync();
+  expect(writeText).toHaveBeenCalledWith(result.bbcode);
+  get("download-html").click();
+  await expect(downloadBlob!.text()).resolves.toContain(result.html);
+  get("download-txt").click();
+  await expect(downloadBlob!.text()).resolves.toBe(result.bbcode);
+});

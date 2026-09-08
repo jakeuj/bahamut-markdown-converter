@@ -279,7 +279,9 @@
           <div>
             <div class="eyebrow section-kicker">MADE FOR BAHAMUT</div>
             <h2>不只換語法，也照顧閱讀。</h2>
-            <p>依巴哈貼文規範處理，遇到格式限制，就保留最重要的內容。</p>
+            <p>
+              依已驗證的巴哈貼文語法處理，遇到格式限制，就保留最重要的內容。
+            </p>
           </div>
         </div>
         <div class="rule-grid">
@@ -302,10 +304,10 @@
           </article>
           <article class="rule-card">
             <div class="rule-icon">[ ]</div>
-            <h3>特殊字元，安心留下</h3>
+            <h3>特殊字元，清楚提醒</h3>
             <p>
               中括號與 HTML
-              當作文字安全處理。程式碼裡的語法不會再被轉換，避免內容意外變形。
+              當作文字處理。程式碼不再次解析；實體字面值在巴哈發文後可能再次解碼，遇到時會提醒。
             </p>
             <span>03 / 忠於原文</span>
           </article>
@@ -324,9 +326,7 @@
           <div>
             <div class="eyebrow section-kicker">SYNTAX GUIDE</div>
             <h2>哪些能轉？一次看明白。</h2>
-            <p>
-              查證與實測：2026-09-07 · 原始碼模式已驗證；富文字貼上仍待人工確認
-            </p>
+            <p>查證與實測：2026-09-08 · 已有正式貼文驗證；富文字貼上另行確認</p>
           </div>
           <span class="small-label">支援標準 Markdown 與常用 GFM 語法</span>
         </div>
@@ -353,7 +353,7 @@
               <tr>
                 <td>清單、工作清單</td>
                 <td>有序／無序清單、☐／☑</td>
-                <td>非 1 起始改為文字編號</td>
+                <td>非 1 起始改為文字編號與手動縮排；自動折行不保證對齊</td>
               </tr>
               <tr>
                 <td>表格、分隔線</td>
@@ -363,16 +363,16 @@
               <tr>
                 <td>連結、圖片</td>
                 <td><code>[url=…]</code>、<code>[img=…]</code></td>
-                <td>限 HTTP(S)；圖片貼上行為未實測</td>
+                <td>工具限 HTTP(S)；已觀察公開貼文圖片，富文字貼上仍待確認</td>
               </tr>
               <tr>
                 <td>引用、行內程式碼</td>
-                <td>「引用：」區塊、純文字</td>
-                <td>不使用 <code>[quote]</code> 與反引號</td>
+                <td><code>[quote]</code> 引用、行內程式碼純文字</td>
+                <td>引用支援巢狀；行內程式碼移除反引號</td>
               </tr>
               <tr>
                 <td>程式碼區塊</td>
-                <td>逐行 <code>[div]</code>，保留視覺縮排</td>
+                <td>逐行 <code>[div]</code>＋等寬字體；空白行不包字體</td>
                 <td>不使用 <code>[code]</code>；不是原始碼備份</td>
               </tr>
               <tr>
@@ -386,8 +386,31 @@
         <details class="sources">
           <summary>相容性說明與參考來源</summary>
           <p>
+            <a
+              href="https://forum.gamer.com.tw/Co.php?bsn=60076&amp;sn=109593747"
+              target="_blank"
+              rel="noopener noreferrer"
+              >正式貼文驗證：2026-09-08</a
+            >
+            ·
+            <a
+              href="https://github.com/jakeuj/bahamut-markdown-converter/blob/main/COMPATIBILITY.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              >依證據層級查看完整紀錄</a
+            >
+          </p>
+          <p>
             本工具的標記規則依專案內的巴哈貼文技能規則整理；瀏覽器預覽是本工具產生的
-            HTML，不是巴哈官方預覽。已在目前瀏覽器的巴哈原始碼模式驗證範例；無法由此推論所有帳號、編輯器或正式發文結果。一般編輯器的富文字剪貼簿相容性仍待人工確認，請在送出文章前確認。
+            HTML，不是巴哈官方預覽。正式貼文已驗證引用、巢狀引用、表格、連結及等寬字體；使用者回報
+            [code]
+            不支援。已測起始編號屬性失敗，因此採文字編號。原始碼入口及富文字貼上依環境而異。
+          </p>
+          <p>
+            實體字面值如
+            <code>&amp;amp;</code>
+            在本機預覽與純文字中保留，但巴哈原始碼發文可能再次解碼；已測兩層、三層編碼仍未解決。請另行保存原始
+            Markdown。HTTP(S) 限制、不執行 HTML 及不渲染公式是本工具設計選擇。
           </p>
           <ul>
             <li>
