@@ -79,9 +79,7 @@ describe("complete converter UI", () => {
     await type("# 😀");
     expect(get("input-count").textContent).toBe("3 字元");
     expect(get("preview").textContent).toContain("😀");
-    expect(get<HTMLTextAreaElement>("source").value).toBe(
-      "[div][b]😀[/b][/div]",
-    );
+    expect(get<HTMLTextAreaElement>("source").value).toBe("[h2]😀[/h2]");
   });
   it("waits for compositionend during Chinese input", async () => {
     get("input").dispatchEvent(new CompositionEvent("compositionstart"));
@@ -237,4 +235,27 @@ it("applies code settings after composition and handles pending input for copyin
       codeHighlight: { defaultLanguage: "javascript" },
     }).bbcode,
   );
+});
+
+it("exports pending six-level headings with shared semantic HTML", async () => {
+  await type("# 舊標題");
+  const input = Array.from(
+    { length: 6 },
+    (_, i) => `${"#".repeat(i + 1)} 新標題 ${i + 1}`,
+  ).join("\n\n");
+  get<HTMLTextAreaElement>("input").value = input;
+  get("input").dispatchEvent(new Event("input"));
+  const result = convertMarkdown(input);
+  get("copy-rich").click();
+  await vi.runAllTimersAsync();
+  await expect(written!["text/html"].text()).resolves.toBe(result.html);
+  await expect(written!["text/plain"].text()).resolves.toBe(result.plainText);
+  expect(get("preview").querySelector("h6")?.textContent).toBe("新標題 6");
+  get("copy-source").click();
+  await vi.runAllTimersAsync();
+  expect(writeText).toHaveBeenLastCalledWith(result.bbcode);
+  get("download-html").click();
+  await expect(downloadBlob!.text()).resolves.toContain(result.html);
+  get("download-txt").click();
+  await expect(downloadBlob!.text()).resolves.toBe(result.bbcode);
 });

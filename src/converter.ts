@@ -21,6 +21,7 @@ export interface ConversionResult {
 interface Node {
   kind: string;
   language?: string;
+  headingLevel?: 1 | 2 | 3 | 4 | 5 | 6;
   text?: string;
   url?: string;
   start?: number;
@@ -129,6 +130,10 @@ function tree(tokens: Token[]): Node[] {
     }
     const node: Node = {
       kind: token.type.replace(/_open$/, ""),
+      headingLevel:
+        token.type === "heading_open"
+          ? (Number(token.tag.slice(1)) as Node["headingLevel"])
+          : undefined,
       language:
         token.type === "fence"
           ? token.info.trim().split(/\s+/)[0].toLowerCase()
@@ -288,6 +293,36 @@ export function convertMarkdown(
         return div((i === 0 ? first : rest) + s, f);
       })
       .join("");
+  const heading = (n: Node, f: Format, first = "", rest = "") => {
+    const level = n.headingLevel ?? 1;
+    if (level >= 4)
+      warnings.add(
+        "四至六級標題在巴哈原始碼中統一呈現為粗體段落；HTML 仍保留六級標題語意。",
+      );
+    if (f === "plain" || (f === "bb" && level >= 4))
+      return paragraph(n.children, f, f === "bb", first, rest);
+    const lines = rows(n.children).map(
+      (line, i) =>
+        (i === 0 ? first : rest) +
+        line.map((child) => render(child, f)).join(""),
+    );
+    const content =
+      f === "html"
+        ? lines.join("<br>")
+        : lines.length === 1
+          ? lines[0]
+          : lines.map((line) => wrap("div", line || "&#160;", f)).join("");
+    if (f === "bb") return wrap(`h${level + 1}`, content, f) + "\n";
+    const size = ["30px", "22px", "18px"][level - 1] ?? "1em";
+    return (
+      wrap(
+        `h${level}`,
+        content,
+        f,
+        ` style="margin:0;font-weight:700;line-height:1.5;overflow-wrap:anywhere;font-size:${size}"`,
+      ) + "\n"
+    );
+  };
   const taskItem = (item: Node): Node => {
     const first = item.children[0];
     const text = first?.children[0];
@@ -338,13 +373,20 @@ export function convertMarkdown(
         if (child.kind === "paragraph" || child.kind === "heading")
           return (
             (gap ? div("", f) : "") +
-            paragraph(
-              child.children,
-              f,
-              child.kind === "heading",
-              i === 0 ? spaces(indent, f) + encode(label, f) : continuation,
-              continuation,
-            )
+            (child.kind === "heading"
+              ? heading(
+                  child,
+                  f,
+                  i === 0 ? spaces(indent, f) + encode(label, f) : continuation,
+                  continuation,
+                )
+              : paragraph(
+                  child.children,
+                  f,
+                  false,
+                  i === 0 ? spaces(indent, f) + encode(label, f) : continuation,
+                  continuation,
+                ))
           );
         return (
           (i === 0 ? div(spaces(indent, f) + encode(label, f), f) : "") +
@@ -455,7 +497,7 @@ export function convertMarkdown(
       case "paragraph":
         return paragraph(n.children, f);
       case "heading":
-        return paragraph(n.children, f, true);
+        return heading(n, f);
       case "strong":
         return wrap("b", children(n, f), f);
       case "em":

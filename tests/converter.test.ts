@@ -12,7 +12,7 @@ describe("paragraphs and inline structure", () => {
     }));
   it("wraps headings and paragraphs", () => {
     expect(convertMarkdown("# 主題\n\n內容 **粗體**").bbcode).toBe(
-      "[div][b]主題[/b][/div][div]內容 [b]粗體[/b][/div]",
+      "[h2]主題[/h2][div]內容 [b]粗體[/b][/div]",
     );
   });
   it("reopens formatting across line breaks", () => {
